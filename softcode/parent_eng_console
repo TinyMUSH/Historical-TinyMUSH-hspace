@@ -1,0 +1,30 @@
+@create Parent Engineering Console
+@set Parent Engineering Console = NO_COMMAND
+&CMD-ASSIGN_TO Parent Engineering Console=$assign * to *:@eng/assigncrew %0=%1
+&CMD-CREWREP Parent Engineering Console=$crewrep:@eng/crewrep
+&CMD_CPOWER_OFF Parent Engineering Console=$cpower off:@console/power 0
+&CMD_CPOWER_ON Parent Engineering Console=$cpower on:@console/power 1
+&CMD_ICOM Parent Engineering Console=$icom *:th [u(fn_notify_consoles,[v(hsdb_owner)],[ansi(c,\[ICOM - [name(me)]\])] %0)]
+&CMD_PRIORITY1 Parent Engineering Console=$syspriority *-:@eng/systempriority %0=-1
+&CMD_PRIORITY2 Parent Engineering Console=$syspriority *+:@eng/systempriority %0=1
+&CMD_QUICK_AFT Parent Engineering Console=$aft:@eng/setsyspower aft=100\%
+&CMD_QUICK_COMM Parent Engineering Console=$comm:@eng/setsyspower com=100\%
+&CMD_QUICK_COMPUTER Parent Engineering Console=$computer:@eng/setsyspower int=100\%
+&CMD_QUICK_ENGINES Parent Engineering Console=$engines:@eng/setsyspower eng=100\%
+&CMD_QUICK_FORE Parent Engineering Console=$fore:@eng/setsyspower fore=100\%
+&CMD_QUICK_LIFE Parent Engineering Console=$life:@eng/setsyspower life=100\%
+&CMD_QUICK_PORT Parent Engineering Console=$port:@eng/setsyspower port=100\%
+&CMD_QUICK_REACTOR Parent Engineering Console=$power:@eng/setsyspower reacto=100\%
+&CMD_QUICK_SENSOR Parent Engineering Console=$sensor:@eng/setsyspower sensor=100\%
+&CMD_QUICK_STAR Parent Engineering Console=$star:@eng/setsyspower star=100\%
+&CMD_QUICK_THRUSTER Parent Engineering Console=$thrust:@eng/setsyspower man=100\%
+&CMD_SET_PERC Parent Engineering Console=$sysperc *=*:@eng/setsyspower %0=%1\%
+&CMD_SET_POWER Parent Engineering Console=$syspower *=*:@eng/setsyspower %0=%1
+&CMD_SREP Parent Engineering Console=$srep:&deadman [v(hsdb_owner)];@nav/sensorreport 0
+&CMD_SYSREP Parent Engineering Console=$sysrep:@eng/systemreport
+&CMD_VSTATS Parent Engineering Console=$vstats:@eng/shipstats
+@DESCRIBE Parent Engineering Console=You see before you a console full of controls for the engineering section of the vessel.
+@set Parent Engineering Console/DESCRIBE=no_command visual
+&FN_CANUSE Parent Engineering Console=[sub(xget(v(HSDB_OWNER),can_use),secs())]
+&FN_NOTIFY_CONSOLES Parent Engineering Console=[pemit([iter(hs_get_attr(%0,consoles)],[switch([loc([lock(##/use)])],[loc(##)],[lock(##/use)])])],%1)]
+&HSDB_OWNER Parent Engineering Console=#446

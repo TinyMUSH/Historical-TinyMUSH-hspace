@@ -1,0 +1,25 @@
+@create Parent Gunnery Console
+@set Parent Gunnery Console = NO_COMMAND
+&CMD_AUTOLOAD Parent Gunnery Console=$autoload on:@console/autoload 1
+&CMD_AUTOROTATE Parent Gunnery Console=$autorotate on:@console/autorotate 1
+&CMD_CHEAD Parent Gunnery Console=$chead * mark *:@console/head %0=%1
+&CMD_CONFIGURE Parent Gunnery Console=$configure *=*:@console/configure %0=%1
+&CMD_CPOWER_OFF Parent Gunnery Console=$cpower off:@console/power 0
+&CMD_CPOWER_ON Parent Gunnery Console=$cpower on:@console/power 1
+&CMD_FIRE Parent Gunnery Console=$fire *:@switch %0=all,{@dolist [hs_get_attr(me,weapons)]={@console/fire ##}},{@console/fire %0}
+&CMD_GREP Parent Gunnery Console=$grep:@console/grep
+&CMD_ICOM Parent Gunnery Console=$icom *:th [u(fn_notify_consoles,[v(hsdb_owner)],[ansi(c,\[ICOM - [name(me)]\])] %0)]
+&CMD_LOAD Parent Gunnery Console=$load *:@console/load %0
+&CMD_LOCK Parent Gunnery Console=$lock *:@swi [setq(0,[u(fn_contact,%0)])]%q0={},@pemit %#=[ansi(hg,-)] No such contact on sensors.,{@swi [u(fn_newbieship,[extract(%q0,2,1,:)])]=1,@pemit %#=[ansi(hg,-)] That ship is classified as a newbie ship and may not be attacked.,{@swi [u(fn_is_deadman,[extract(%q0,2,1,:)])]=1,@pemit %#=[ansi(hg,-)] That vessel is in deadman mode and cannot be attacked.,@console/lock %0}}
+&CMD_NOLOAD Parent Gunnery Console=$autoload off:@console/autoload 0
+&CMD_NOROTATE Parent Gunnery Console=$autorotate off:@console/autorotate 0
+&CMD_QREP Parent Gunnery Console=$qrep:@console/qrep
+&CMD_SREP Parent Gunnery Console=$srep:&deadman [v(hsdb_owner)];@nav/sensorreport 0
+&CMD_TARGET Parent Gunnery Console=$target *:@console/target %0
+&CMD_UNLOAD Parent Gunnery Console=$unload *:@console/unload %0
+&CMD_UNLOCK Parent Gunnery Console=$unlock:@console/unlock
+@DESCRIBE Parent Gunnery Console=You see before you a large gunnery turret with a seat attached to it.  Just in front of the seat are the operator controls.
+@set Parent Gunnery Console/DESCRIBE=no_command visual
+&FN_CONTACT Parent Gunnery Console=[squish([iter([hs_srep(me,0)],[switch([extract(##,1,1,:)],%0,##)],|)])]
+&FN_IS_DEADMAN Parent Gunnery Console=[switch([get(%0/deadman)],YES,1,0)]
+&FN_NEWBIESHIP Parent Gunnery Console=0

@@ -1,0 +1,35 @@
+The official HSpace homepage may be found at:
+
+http://www.hspace.f2s.com/hspace.htm
+
+The core HSpace code is maintained by Revian (revian@pentrel.com).
+Originally written for the PennMUSH server, HSpace has been ported to
+TinyMUSH 3 with Revian's permission. 
+
+It is highly recommended that you already have experience with HSpace or
+enlist the aid of someone who does. We will be working on a tutorial to
+assist newcomers, but for now setting up the HSpace system can be a daunting
+task. Start by reading the help text inside and out. From there you set up a
+universe, your ship classes, and start creating and placing your objects.
+
+HSpace help text is viewable using the 'hshelp' command (this is
+configurable in the TinyMUSH config file). You may also want to customize
+the HSpace config file, which may be found in 'game/space/hspace.cnf'. 
+HSpace database files are created in 'game/space' and should be backed up
+along with the rest of the database files.
+
+If you have used the PennMUSH version of HSpace before, all commands are
+identical and softcode written for that version should port with minimal
+changes. We have included the basic console softcode in the 'softcode'
+directory. You should upload these files to your game to create parents for
+your ship consoles.
+
+There is a mailing list for TinyMUSH HSpace: tinymush-hspace@godlike.com.
+To more information and to subscribe, go to the web page at:
+
+http://www.godlike.com/mailman/listinfo.cgi/tinymush-hspace
+
+Please use this list rather than tinymush-support for questions related to
+HSpace.
+
+Thanks!
