@@ -52,7 +52,9 @@ void CHSInterface::AtrDel(int obj, const char *atrname, int owner)
 #endif
 #ifdef TM3
 	int atr;
+	char name[SBUF_SIZE];
 
+	strcpy(name, atrname);
 	atr = mkattr(atrname);
 	atr_clr(obj, atr);
 #endif
