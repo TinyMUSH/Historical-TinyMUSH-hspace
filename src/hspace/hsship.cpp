@@ -2222,7 +2222,7 @@ void CHSShip::HandleLifeSupport(void)
 // Returns the maximum hull points for the vessel
 UINT CHSShip::GetMaxHullPoints(void)
 {
-	return m_classinfo->m_maxhull;
+	return (m_classinfo->m_maxhull ? m_classinfo->m_maxhull : 1);
 }
 
 // Returns the current hull points for the vessel

@@ -6011,7 +6011,7 @@ FUNCTION(fun_table)
 	}
 
 	if ((number < 1) || (number > 77) ||
-	    (linelen < 1) || (linelen > 77)) {
+	    (linelen < number) || (linelen > 77) ) {
 		safe_str("#-1 OUT OF RANGE", buff, bufc);
 		return;
 	}
