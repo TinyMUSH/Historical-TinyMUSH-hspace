@@ -44,11 +44,13 @@ CMD_ONE_ARG(do_hs_unman);
 CMD_ONE_ARG(do_hs_disembark);
 CMD_TWO_ARG(do_hs_board);
 
+#ifndef __HSINTERFACE_INCLUDED__
 extern void FDECL(hsCommand, (char *, char *, char*, char*, dbref));
 extern void FDECL(hscManConsole, (dbref, char *));
 extern void FDECL(hscUnManConsole, (dbref, char *));
 extern void FDECL(hscDisembark, (dbref, char *));
 extern void FDECL(hscBoardShip, (dbref, char *, char *));
+#endif
 
 #endif /* HSPACE */
 

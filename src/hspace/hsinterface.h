@@ -10,6 +10,9 @@ extern "C" {
 #include "flags.h"
 #include "attrs.h"
 #include "db.h"
+#include "externs.h"
+#include "match.h"  
+#include "command.h"
 
 };
 
