@@ -1,0 +1,535 @@
+Frequently-Asked Questions
+==========================
+
+- I found a bug! What do I do?
+- How do I make a new configuration file?
+- How do I back up my database?
+- How do I restore a database backup?
+- How do I apply a patch upgrade or bugfix?
+- How do logfiles work?
+- How do I use multiple guests?
+- How do I tune the database cache?
+- How do I use radix compression?
+- How do I use an in-memory database?
+- Help! I'm having database problems.
+- How do I set up a link to an external SQL database?
+
+------------------------------------------------------------------------------
+
+I found a bug! What do I do?
+
+- Make sure that it really is a bug, and not a new feature or design
+  decision. If it crashes the server, it's a bug. If you can't tell,
+  consider it a bug.
+
+- Try to come up with an easily-reproducible sequence of events that
+  will demonstrate the bug.
+
+- Send email to tinymush-bugs@godlike.com with the bug report.
+
+- If the bug crashes the server, we really, really, want to hear about
+  it. We'd like as much information as possible.
+
+  We've included a script which automatically analyzes core files and
+  emails results to us. Go to your game directory, and type './ReportCrash'
+  You should eventually see a 'Done.' -- that means the analysis was
+  successful. If you get an error message and early end to the script,
+  you'll need to deal with it manually.
+
+  The following sequence of commands will generate a stack trace and
+  variable dumps from the core file. Cut-and-paste the output and
+  email it along with your bug report. You can obtain this by doing
+  the following from the game directory:
+
+  gdb bin/netmush core
+	where
+	info frame
+	info args
+	info locals
+	up
+	info args
+	info locals
+	up	(Repeat until you're at the top procedure level.)
+	quit
+
+  If you don't have gdb, use dbx, as follows:
+
+  dbx bin/netmush core
+	where
+	dump
+	up
+	dump
+	up	(Repeat until you're at the top procedure level.)
+	quit
+
+------------------------------------------------------------------------------
+
+How do I make a new configuration file?
+
+TinyMUSH 3.0 gets the information it needs to operate the game (aside from
+the database itself) from a configuration file that is read in at startup.
+The configuration file contains various parameters, such as where to find
+the database, what port to listen for connects, and many other things.
+
+Follow these instructions to make a configuration file for your MUSH from
+the supplied template configuration file:
+
+In your game directory, copy the file netmush.conf to <your-mud-name>.conf
+and edit it as follows:
+
+    - Replace netmush.<whatever> in the 'xxx_database' lines with
+      <your-mud-name>.<whatever>.
+
+    - Set the port number on the 'port' line to the correct port.
+
+    - Set the mud name on the 'mud_name' line to the name of your mud.
+
+    - Make any other configuration changes you want to make at this time.
+      Here are some of the common ones to change:
+         o money_name_singular <text>  The name of one coin (penny)
+         o money_name_plural <text>    The name of several coins (pennies)
+         o fork_dump no           Do this if you have little swap space.
+         o paycheck <amount>      Players get this much money each day
+                                  they connect.
+         o paystart <amount>      Players start out with this much money.
+         o payfind <chance>       Each time a player moves, he has a
+                                  1 in <chance> chance of finding a penny.
+         o player_starting_room <roomno>  The room that new players are
+                                  created in.
+
+There are many more configuration directives available. Information
+on individual directives can be obtained with the WIZHELP <directive>
+command within the MUSH.
+
+------------------------------------------------------------------------------
+
+How do I back up my database?
+
+Shut down your game. Go into the game directory, and type './Backup'
+You can safely back up your database while the game is running; if you
+do this, do a @dump, wait a minute until the database is done saving,
+and then run the backup.
+
+This will create a 'flatfile', and compress it with GNU zip; if there's
+no GNU zip on your system, you should edit the Backup script so it uses
+Unix compress instead.
+
+Do NOT simply naively copy around netmush.db, netmush.gdbm, etc., as
+they are not portable between platforms. Use the Backup script to
+create flatfiles.
+
+Note that this does NOT back up your comsys database or mail database.
+You can simply copy comsys.db and mail.db to a safe place, to back
+them up.
+
+------------------------------------------------------------------------------
+
+How do I restore a database backup?
+
+Shut down the game (if it's currently running). Then, go into the game
+directory and type './Restore name-of-flatfile', where name-of-flatfile
+is the name of your backup file.
+
+Note that this only restores your database; it does not restore the
+comsys or mail databases. To restore the latter, simply copy your
+saved copies of comsys.db and mail.db back to the game directory.
+
+------------------------------------------------------------------------------
+
+How do I apply a patch upgrade or bugfix?
+
+To patch the server:
+
+- Download the patch from the archive, via FTP or the Web. Save the file
+  in your code directory, which is probably called something like
+  'tinymush-3.0' -- it's the same directory that contains this FAQ file.
+
+- Type:  gzcat name_of_patchfile.gz | patch -p1
+  name_of_patchfile will probably be something like 'patch-30p1-30p2'
+  (with a .gz extension).
+  If you do not have gzcat, type 'gunzip name_of_patchfile.gz' and then
+  'patch -p1 < name_of_patchfile'
+  If you do not have the 'patch' program on your system, you cannot
+  apply patches. Get your system administrator to install it.
+
+- If you have previously compiled TinyMUSH in this directory, you need
+  to make sure that a clean build of the patched version is done, so type:
+      cd src
+      make clean
+      cd ..
+
+- Type:  ./Build
+
+If there are problems with the patch, make sure that nothing strange
+has happened -- for example, there are no carriage-return/newlines ('^M')
+characters at the end of lines.
+
+Also, if you're applying multiple patches, make sure to do them in 
+chronological sequence -- oldest to newest patch.
+
+------------------------------------------------------------------------------
+
+How do logfiles work?
+
+When you start your game from the command line, the startup information
+is logged to GAMENAME.log, where GAMENAME is what you specified it to
+be in your mush.config file.
+
+You can separate log information of different types into multiple
+files, using the divert_log configuration parameter. See the wizhelp
+for details.
+
+When you @restart, or do a @logrotate, the existing logfiles are closed
+and renamed to LOGNAME.TIMESTAMP, where LOGNAME is the name of the log,
+and TIMESTAMP is the "epoch time" (equivalent to the number of seconds
+returned by the secs() MUSH function). You can delete those logfiles
+to reclaim disk space, if you'd like. The current logfile will always
+have the "standard" name as specified by GAMENAME.log and/or divert_log
+parameters, though.
+
+When you start the game using the Startmush script, any existing
+GAMENAME.log files, or log files named by divert_log conf parameters, will
+be renamed to LOGNAME.old (whatever the name of the log happens to be). Any
+previous logs by those names (with a .TIMESTAMP extension) will be deleted.
+
+When the MUSH is running, you can use, from the game directory, './Logclean'
+to remove logs with a .TIMESTAMP extension, and './Logclean -o' to remove
+logs with a .TIMESTAMP or .old extension.
+
+When the MUSH is not running, './Logclean -a' can be used to get rid of all
+logfiles -- GAMENAME.log, anything named by the divert_log conf parameters,
+and their old versions with .TIMESTAMP and .old extensions.
+
+------------------------------------------------------------------------------
+
+How do I use multiple guests?
+
+Using multiple guests is easy, and after you set it up, you'll never have to
+worry about it again. Here are the steps needed to implement multiple
+guests:
+
+1. @pcreate a prototype guest character. Name it whatever you want (altho
+you should use a descriptive name like 'Guest'), and use any password you
+want (it doesn't really matter, as the prototype guest can never connect).
+Set guest_char_num to the database number of the prototype guest character.
+
+2. You may want to set the following things on the prototype guest
+character, which are inherited by every guest character: the amount of
+money, the zone, the parent, the basic lock, the enter lock, and all
+attributes. (NOTE: Guests always start off in the room specified by the
+player_starting_room).
+
+3. Set the config parameter 'guest_prefix' to whatever you want your guests
+to be named (this defaults to 'Guest'). MUSH keeps track of multiple guests
+by naming them using a numbering system: <prefix><number>. For example,
+Guest1, Guest2, Guest3, etc. People who wish to connect as a guest will have
+to use this prefix, for example, if 'guest_prefix' was set to 'Visitor', one
+would have to type 'connect visitor' to log in as a guest.
+
+4. Set 'number_guests' to the maximum number of guests you wish to support.
+This number can be as small or as large as you wish.
+
+5. Optionally, set 'guest_nuker' to a wizard's database number, if you wish
+to have a wizard other than #1 to nuke the guests.
+
+
+The file specified by the config parameter 'guest_file' is shown to every
+guest when they connect. You may wish to use the 'access' config parameter
+to bar guests from using certain commands, using the 'no_guest' permission.
+All guests have the 'Guest' power, which is a marker you may use to test
+whether a player is a guest or not.
+
+------------------------------------------------------------------------------
+
+How do I tune the database cache?
+
+Hi. Andrew Molitor here. I am not exactly an expert on cache tuning, but
+then, nobody is. It's something of a black art. The basic tradeoff here is
+this: If you make your cache larger, it will consume more memory, but you
+will have to make disk accesses less often to get data. This sounds great,
+until you remember that if you consume *enough* memory, the operating system
+will begin to page random bits of your game on and off of disk -- you are
+better off staying small enough to not have that happen, and do your own
+getting data on and off disk.
+
+So, you want your cache as large as possible until it gets Too Large, which
+is usually when you begin to page too much (more hard page faults in the
+output on @list process than I/O in the read column on @list db_stats is a
+reasonable guideline. Ideally many fewer page faults), or when your sysadmin
+comes pounding on your door wondering what that ENORMOUS process is you have.
+
+What about depth and width? Well, the wider it is, the faster you'll look
+things up in it, but the shallower it is, the more it will tend to 'stretch'
+outside the specified size. As a guideline, a depth of 9 or 10 seems to be
+minimal, and for a few hundred wide, make it at least 15 deep. That's for
+object level caching (recommended). For attribute level cacheing, make it,
+oh, 50 percent deeper?
+
+There are some statistics you should be aware of:
+
+   - paging -- the hard page faults field of @list process cache hit
+     ratio. The percentage of total reads (ignore writes, they rarely
+     amount to anything) which require I/O. See @list db_stats for these
+     numbers, the 2nd column is where to look. Total calls and I/O are the
+     numbers to be looking at.
+
+   - cache size -- this is right at the bottom of the output from @list
+     db_stats.
+
+If your cache size is, after running a bit, larger than the original depth X
+original width, your cache is 'stretching', and is probably too shallow, and
+possibly too small.
+
+If you are making a lot of page faults, your process size is too large, try
+shrinking the cache, or filtering out unused attributes, or both, to shrink
+process size.
+
+If your cache hit ratio is under about 95-97 percent, your cache is probably
+too small, and it should grow. Either wider or deeper, wider is preferable
+unless your cache tends to stretch, see above.
+
+It's a careful dance you need to do, so watch the statistics, and don't be
+afraid to try tinkering with the cache size this way and that. Note that
+under SunOS (and SysV?) doing I/O will tend to generate page faults as well,
+so shrinking your cache may force the database to do more reading and writing
+of the disk, and actually increase the number of page faults! So don't just
+twiddle a parameter and call it done, watch those numbers!
+
+Good luck ;)
+
+------------------------------------------------------------------------------
+
+How do I use radix compression?
+
+(Contributed by Andrew Molitor.)
+
+NOTE:   You should not use radix compression unless you have a relatively
+        large database, consisting of a few hundred objects. Those starting
+        from scratch should NOT use compression.
+
+	Using compression is something you don't want to take lightly.
+It's useful if you're short on disk space in disk based mode, and it will
+help slightly on memory usage as well, but it will cost a little performance.
+Not a lot, there is some question about whether the users can feel it at all
+on the dinky little Sun 3/60 I run my MUSH on, so it's likely that nobody
+will even notice on a normal machine. Benchmarks indicate about a 5%
+performance hit. The larger issue is that it's a bit of a hassle to set up.
+
+
+1. You need to produce a compression table. The radix tree compression
+library works by converting common substrings into 12 bit code, so it needs
+to know what your common substrings are. You'll need a flat dump of your
+database, or at least the ability to produce one. In the radixlib directory,
+do a 'configure' then a 'make a' which builds the binary part of the tools
+used to analyse your flat dump. Then you run your database through the
+analyse.sh shell script, like this:
+
+cat my_db.flat | analyse.sh
+
+	or possibly these variations:
+
+db_unload my_game.gdbm | analyse.sh
+zcat my_db.flat.Z | analyse.sh
+
+	This will a) take a while and b) produce a file called compresstab.h.
+You can look at it if you like, it's just a big C structure with 4000ish
+of the most common strings in your database. If you have access to a big
+machine for one-off jobs, I highly recommend using this machine to build
+your compression table. Ignore any messages about broken pipes if
+compresstab.h exists.
+
+2. Build the compression library. Just do a 'make libcompress.a' in
+the radixlib subdirectory.
+
+3. Rebuild your server. Edit the Makefile section called 'Radix
+Compression', uncommenting the necessary defines, and rebuild netMUSH
+from scratch. Make damn sure have a copy of dbconvert that does not use
+compression. Use it to get a flat dump of your uncompressed DB before moving
+on.
+
+4. Reload your database compressed. Use the rebuilt dbconvert, it will
+now load/unload into/out of a compressed gdbm database. Its flat dump format
+is still uncompressed, however. db_load or whatever your poison is to load
+up the gdbm database from the flat dump. You're ready to roll!
+
+------------------------------------------------------------------------------
+
+How do I use the in-memory database?
+
+If you're starting your MUSH from scratch, all you need to do is specify in
+the Makefile whether you want to be disk based or memory based, and compile,
+following the instructions for creating a database. Converting from disk
+based to memory based, and vice versa, is a bit more difficult.
+
+Converting from memory based to disk based:
+------------------------------------------
+
+It is simple to convert your database to a disk based format, as
+follows: recompile with the the disk based options set in the Makefile.
+start up the game, log in as a wizard, and shut it down.
+
+Converting from disk based to memory based:
+------------------------------------------
+
+You need to use db_unload to convert your gdbm database to a flatfile, as
+follows:
+
+	db_unload <gamename>.gdbm <gamename>.db.new <gamename>.db.FLAT
+
+You then need to remove <gamename>.db.new, <gamename>.db,
+<gamename>.gdbm.db, and <gamename>.gdbm. When that is done, rename
+<gamename>.db.FLAT to <gamename>.db.new. Start up the game.
+
+
+A comparison of disk based and memory based database storage methods.
+--------------------------------------------------------------------
+
+1. Memory based:
+
+- Advantages:
+ 	- Eliminates the overhead of caching, and accessing the disk to
+	  read and write data.
+	- Total database usage on disk is usually smaller that a disk-based
+	  setup.
+	- A memory based setup dumps and loads using a flatfile, which is
+	  easier to manage and easily compressible when dumped by the MUSH.
+- Disadvantages:
+	- Memory usage grows as the size of the database grows.
+
+2. Disk based:
+
+- Advantages:
+	- Uses a fixed amount of memory independent of database size.
+	- Faster database saves.
+- Disadvantages:
+	- Slower performance due to the overhead of caching, and getting
+	  bits of data to/from disk.
+	- Uses 3 files for the database, and usually takes up more disk
+	  space than a memory based system, and the main text database is
+	  not compressible at dump time.
+
+Memory based usage is preferred _if_ you have enough memory to support a
+growing database, however, when memory is at a premium and memory usage is
+the key point of whether you remain on your site or not, disk based usage is
+the way to go.
+
+Saving disk space:
+-----------------
+
+- If you are using a disk based setup, consider converting to a memory based
+  setup, which is much more efficient with disk space.
+- Enabling the config parameter 'compression', and specifying a
+  'compress_program' and 'uncompress_program' will save disk space under
+  memory based usage and disk based usage, but it makes much more of a
+  difference with memory based because it compresses the entire database.
+- Enabling radix compression (see README.COMPRESSION) will reduce the size
+  of a disk based database AND its memory usage. On a memory based setup, it
+  will only reduce memory usage.
+
+Saving memory:
+-------------
+
+- If you are using a memory based setup, consider converting to disk based.
+- On a disk based setup, reduce the size of the cache, preferrably making it
+  narrower (see README for tips on the cache)
+- On both disk and memory based setups, enable radix compression (see
+  README.COMPRESSION)
+- Adjust HASH_FACTOR in config.h: 2 is recommended, altho 1 is usable and
+  results in less memory usage.
+- Adjust OUTPUT_BLOCK_SIZE in config.h: this should be a power of 2,
+  preferably in the ranger of 4096 to 16384. Any value over the config
+  parameter 'output_limit' is wasted.
+
+
+You should juggle these options until you find a setup that works, and gives
+you the best performance. There is no 'right' way to set up a MUSH, it always
+depends on the capabilities of the system you are running on, and how much
+of those capabilities you can use.
+
+Memory debugging:
+----------------
+
+If you turn on malloc debugging in the Makefile (-DMCHECK) you have a wide
+range of information to use in hunting down memory leaks or corruption.
+@stats/all displays statistics on memory usage. This is useful to check
+before and after executing a command to see if it leaks memory (altho you
+need to do it multiple times to make sure it's really leaking).
+
+It also enables memory tracing, where all allocation information is written
+to a file called mtrace.out in the game directory. The awk script mtrace.awk
+is included and analyzes mtrace.out for potential problems.
+
+------------------------------------------------------------------------------
+
+Help! I'm having database problems.
+
+Almost everyone who runs a MUSH experiences a database disaster at
+least once in their life. There can be many reasons for this; common
+ones include an NFS server dying, running out of disk space,
+overflowing your disk quota, a nasty game crash, and a nasty system
+crash.
+
+Typically, in this scenario, the server process either dumps core during
+an attempt to load the database, or simply hangs; sometimes, it may come
+back up and large chunks of your data may be missing.
+
+Sometimes, simply by flatfiling and reloading the flatfile (doing a
+Backup and a Restore), integrity issues that cause the database to
+fail to load can be dealt with. Be aware that you might experience some
+minor data loss in the process, though.
+
+However, your best bet in this scenario is to restore your database
+from backup. This means it's very important to keep backups; we strongly
+recommend that you back up once a week at minimum, if not nightly.
+
+------------------------------------------------------------------------------
+
+How do I set up a link to an external SQL database?
+
+There is built-in support in TinyMUSH 3.0 for connecting to an external
+mSQL database. If you want to do this, you'll need to compile in the
+appropriate file (see the Makefile for how to do this).
+
+You can also look at db_sql.h and db_msql.c for examples of how to
+write your own method of connecting to another type of external SQL
+database. If you do this, please let us know, and provide us with a
+copy of the code, so it can be included with the next TinyMUSH relese.
+
+You'll need to have an mSQL 2.x database set up. mSQL can be obtained
+from http://www.hughes.com.au/ together with the appropriate documentation.
+We do not support the mSQL package itself; if you need help with mSQL
+installation, configuration, and maintenance, please refer to the
+mSQL pages for assistance.
+
+If the mSQL database is on the same machine as your MUSH, the sql_host
+parameter in your netmush.conf file (or equivalent) should be set to
+"localhost", so the local Unix domain socket is used; if the database
+is not on the same machine as your MUSH, the sql_host parameter should
+be whatever the remote server's hostname is.
+
+You then need to create a database in mSQL for the MUSH to use (or
+you can, of course, use an existing database). You can do this with:
+
+msqladmin create MUSH_DB
+
+... which creates a database called MUSH_DB. You can then add the
+parameer 'sql_database MUSH_DB' to your netmush.conf file.
+
+Make sure that you set up your mSQL installation's msql.acl file
+correctly and with the appropriate level of security. See mSQL's
+own documentation for assistance with this.
+
+The database link should come up automatically when the game is
+first started. You should see logfile messages that look something
+like this, after the 'Load complete.' note in the log:
+
+990831.115339 TinyMUSH SQL/CONN : Connected to SQL server.
+990831.115339 TinyMUSH SQL/CONN : SQL database selected.
+
+You should then be able to use the SQL() function from within the MUSH
+to make queries against this database. Note that users of this function
+need to have the use_sql power.
+
+------------------------------------------------------------------------------
+    If you have suggestions for more FAQs, please email us and let us know.
+------------------------------------------------------------------------------

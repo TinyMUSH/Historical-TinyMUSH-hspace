@@ -1,0 +1,266 @@
+If you are converting your game from TinyMUSH 2.2, upgrading to TinyMUSH
+3.0 is similar to doing a normal upgrade, with a couple of additional
+steps. You will need to do the following:
+
+- Flatfile your database using the dbconvert utility from TinyMUSH 2.2
+  (the db_unload script will work -- this is just like doing a normal
+  backup of your database).
+
+- Copy that flatfile to some safe place, and save it.
+
+- The file directory structure has been altered. All game files now
+  go into the 'game' directory. You'll want to move your database
+  files into the 'data' directory, and your text files into the
+  'text' directory.
+
+- Edit mush.config and make sure that it's correct; it's basically like
+  the old mush.config file from TinyMUSH 2.2, with some additional things.
+
+- If the GAMENAME parameter in your mush.config file is not 'netmush',
+  edit your GAMENAME.conf file (substitute whatever you set GAMENAME to
+  for GAMENAME). 
+
+- Compare your GAMENAME.conf file to the default netmush.conf file.
+  You'll note that there are some new parameters and some changes to
+  old defaults. Update your conf file to reflect these changes. The
+  important ones are:
+
+	raw_helpfile news text/news
+	raw_helpfile man text/mushman
+	mail_database data/mail.db
+	comsys_database data/comsys.db
+
+  Also be sure to update the paths for input_database, output_database,
+  gdbm_database, and crash_database, to reflect the fact that these files
+  are now in the data directory. (i.e., use 'input_database data/netmush.db'
+  rather than 'input_database netmush.db').
+
+  You should also look at the "Compatibility Notes" section below, for
+  any other configuration parameters you'll need to add or change.
+
+- Assuming that your flatfile is in the 'game' directory, go into the
+  'game' directory ('cd game').
+
+  If you have perl installed on your system, type:
+
+      ./cvt22.pl < mygame.flat > NEW.flatfile
+
+  If you do not have perl installed on your system, type:
+
+      sed -f cvt22.sed mygame.flat > NEW.flatfile 
+
+  (Substitute the name of your flatfile for 'mygame.flat'.)
+  This will take care of converting function calls to backwards-compatible
+  versions.
+
+- From the game directory, type:  ./Restore NEW.flatfile
+  This will unflatfile (load) your database into TinyMUSH 3.0 format.
+
+- From the game directory, type:  ./Backup
+  This will back up your datbase in TinyMUSH 3.0 format.
+  (This step is not necessary and can be skipped, but it's worthwhile
+  doing anyway.)
+
+- From the game directory, type:  ./Startmush
+  This will start the game.
+
+-----------------------------------------------------------------------------
+
+Compatibility Notes
+
+
+You will want the following parameters in your conf file, for maximum
+2.2 compatibility:
+
+	global_aconn_uselocks yes
+	lattr_default_oldstyle yes
+	addcommands_match_blindly no
+	addcommands_obey_stop yes
+
+
+Virtually everything can be tweaked, disabled, or otherwise altered to
+fit whatever behavior you happen to want the server to have. All it takes
+is some modifications to your conf file (netmush.conf, or whatever you
+called it).
+
+- I don't want to use the built-in mailer.
+  Put 'have_mailer no' in your conf file.
+  If you never ever want to use the mailer, you might also want to 
+  consider compiling with USE_MAIL undefined, in config.h
+
+- I don't want to use the built-in comsys (channel/chat system).
+  Put 'have_comsys no' in your conf file.
+  If you never ever want to use the comsys, you might also want to 
+  consider compiling with USE_COMSYS undefined, in config.h
+
+- I don't want to allow zone control with ZMOs.
+  Put 'have_zones no' in your conf file.
+
+- I don't want to allow powers to be set on objects.
+  Put 'access @power disabled' in your conf file.
+
+- I don't like the last-paged feature.
+  Put 'page_requires_equals yes' in your conf file. This will enforce the
+  use of an equals sign to page someone again, i.e., 'page =<message>'
+  is needed, not just 'page <message>'. This should prevent virtually
+  all last-paged-related mishaps.
+
+- I don't want to allow @conformat and/or @exitformat to be used.
+  Put 'attr_access ConFormat disabled' and/or 'attr_access ExitFormat disabled'
+  in your conf file.
+
+- I don't want side-effect functions.
+  Put the following in your conf file:
+	function_access command disabled
+	function_access create disabled
+	function_access force disabled
+	function_access link disabled
+	function_access set disabled
+	function_access tel disabled
+	function_access trigger disabled
+	function_access wait disabled
+	function_access wipe disabled
+  If you want to be really draconian, also add to the conf file:
+	function_access pemit disabled
+	function_access remit disabled
+
+-----------------------------------------------------------------------------
+
+Altered Behavior
+
+
+The following are important changes in behavior between 2.2 and 3.0:
+
+- objmem() behaves differently, taking into account the object structure
+  as well as attribute text. To get the equivalent behavior to 2.2's
+  objmem(<obj>), use objmem(<obj>/*)
+
+- hasattr() no longer checks for the presence of the attribute on the
+  object's parent chain. To get the equivalent of the 2.2 behavior,
+  use hasattrp() instead. Your existing database was automatically
+  converted to take this difference into account.
+
+- Two additional categories have been added to the stats() function. If
+  you have softcode that extracts the number of garbage objects in the
+  database from stats(), it will be fine if you used last(stats()) to
+  get the data; if you used extract() or another function that depended
+  upon list position, you will need to modify your code.
+
+-----------------------------------------------------------------------------
+
+The following is a list of features/functions that were in TinyMUX 1.6,
+but were not in TinyMUSH 2.2.5, and which have become part of 3.0.
+
+For a more general look at TinyMUSH 3.0 changes, see the CHANGES file.
+
+- The TinyMUX powers system has been added.
+
+- Added the MUX mailer. (Config option, on by default.)
+
+- Added the MUX com system. (Config option, on by default.)
+
+- The Guest system has been replaced by the MUX Guest system.
+
+- DNS lookups are now done by a slave process (automatically started at
+  startup, or through @startslave); the server will no longer block for
+  them.
+
+- Support for identd.
+
+- Max login record kept and displayed in WHO.
+
+- Added indent_desc config parameter.
+
+- Buffer size is now 8000 characters (doubled).
+
+- Output block size is now a compile-time parameter.
+
+- Auto-restart on crash controlled by signal_action conf parameter.
+
+- Attribute caching has been eliminated.
+
+- Memory-based databases supported.
+
+- Wizards can connect dark via the 'cd' command.
+
+- Added '@cpattr' command.
+
+- @daily implemented; enabled by 'eventchecking' global parameter, time
+  set by events_daily_hour.
+
+- Added @dbclean command, which removes stale attribute names from the
+  database.
+
+- Destruction of all objects is delayed until a dbck is done, as was
+  previously true just for rooms. (Exception: DESTROY_OK objects.)
+
+- @edit hilites the changed text.
+
+- examine/brief now shows everything but the attributes on the object.
+  To get the old behavior (just showing the owner), use examine/owner.
+
+- '@function/preserve' preserves registers across user-defined functions.
+
+- '@list process' shows the number of descriptors available.
+
+- Multi-page and last-paged are now supported.
+
+- @search supports a GARBAGE class.
+
+- Added 'think' command.
+
+- Semaphore @wait can now block on a user-specified attribute.
+
+- Added @tofail/@otofail/@atofail (messages for failing to teleport out).
+
+- Added the ROYALTY flag.
+
+- Added SpeechLock/AUDITORIUM support.
+
+- Added FIXED flag (prevents teleporting or going home), with conf 
+  parameters fixed_home_message and fixed_tel_message.
+
+- The GAGGED flag is back.
+
+- Added marker flags: HEAD, STAFF, UNINSPECTED.
+
+- TRANSPARENT flag on room shows exits in "long" style.
+
+- Added VACATION flag, which auto-resets when a player connects.
+
+- Added WATCHER flag, and Watch_Logins power, which is equivalent to the
+  connection monitoring functionality of MUX's MONITOR flag. 
+
+- hasattr() no longer finds attributes on parents; use the new hasattrp()
+  function for the old hasattr() behavior.
+
+- Added alphamax(), alphamin() functions.
+
+- Added art() function.
+
+- Added beep() function.
+
+- Added case() function.
+
+- Added children(), lparent() functions.
+
+- Added columns() function.
+
+- Added encrypt(), decrypt() functions.
+
+- Added grep(), grepi() functions.
+
+- Added hastype() function.
+
+- Added playmem() function.
+
+- Added pmatch() function.
+
+- Added strcat() function.
+
+- Added strtrunc() function.
+
+- Note that side-effect functions that fail now generally return #-1
+  NOT a null string (MUX behavior). If you want to guarantee a null
+  return, wrap the call in a null().
+

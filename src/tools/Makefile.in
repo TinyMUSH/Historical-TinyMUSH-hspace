@@ -1,0 +1,4 @@
+CC=@CC@
+
+rawdump: rawdump.c
+	$(CC) -I.. -I../gdbm-1.8.0 rawdump.c -o rawdump -L../gdbm-1.8.0/.libs -lgdbm
