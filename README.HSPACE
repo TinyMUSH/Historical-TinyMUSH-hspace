@@ -20,7 +20,9 @@ along with the rest of the database files.
 
 If you have used the PennMUSH version of HSpace before, all commands are
 identical and softcode written for that version should port with minimal
-changes. We have included the basic console softcode in the 'softcode'
+changes. Some PennMUSH functions have been aliased in alias.conf, and the
+table() function has been added as part of the HSpace modifications for
+compatibility. We have included the basic console softcode in the 'softcode'
 directory. You should upload these files to your game to create parents for
 your ship consoles.
 
